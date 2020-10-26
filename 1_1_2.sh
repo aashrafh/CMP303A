@@ -23,3 +23,9 @@ head -3 MergedContent
 
 # Sort the MergedContent and save your result in the file SortedMergedContent in the same folder.
 sort MergedContent >> SortedMergedContent
+
+# Display on the screen the following message “The sorted file is :”
+echo "The sorted file is :"
+
+# Display the SortedMergedContent.
+cat SortedMergedContent
