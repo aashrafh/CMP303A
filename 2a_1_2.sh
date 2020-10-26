@@ -21,3 +21,22 @@ function bin2Dec {
     # A shrtened method I found on the internet
     # echo "$((2#bin))"
 }
+
+function dec2Bin {
+    dec=$1;
+    bin=0;
+    i=0;
+
+    while [ $dec -ne 0 ];
+    do
+        rem=`expr $dec % 2`;
+        power=$((10 ** i));
+        res=`expr $rem \* $power`;
+        bin=$((bin+res));
+        dec=`expr $dec \/ 2`;
+
+        let i+=1;
+    done
+
+    echo $((bin));
+}
