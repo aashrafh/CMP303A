@@ -40,3 +40,24 @@ function dec2Bin {
 
     echo $((bin));
 }
+
+function convert {
+    if [ "$#" -eq 1 ];
+    then
+        bin=$1;
+        bin2Dec $bin;
+    fi
+
+    if [ "$#" -eq 2 ];
+    then
+        mode=$1;
+        value=$2;
+
+        if [ "$mode" = "1" ];
+        then
+            bin2Dec $value;
+        else
+            dec2Bin $value;
+        fi
+    fi
+}
