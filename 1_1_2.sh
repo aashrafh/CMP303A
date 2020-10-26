@@ -35,3 +35,17 @@ chmod a-r SortedMergedContent
 
 # Display the contents of the MergedContent after removing the duplicate lines.
 uniq -u MergedContent
+
+# Try to replace all small letters with capital ones in SortedMergedContent.
+cat SortedMergedContent | tr '[a-z]' '[A-Z]'
+
+# Display a message on the screen explaining what happened in the last step and why?
+printf "Reading permission denied because we prevented anyone from reading the SortedMergedContent in req #9\n"
+
+# Solve the problem in (12) and re-run (11) again.
+# Solution: change reading permission and re-run
+chmod a+r SortedMergedContent
+cat SortedMergedContent | tr '[a-z]' '[A-Z]'
+
+# Find the line numbers starting with “w” and ending with a number in MergedContent.
+grep -i -n "^w.*[0-9]$" MergedContent
