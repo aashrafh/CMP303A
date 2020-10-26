@@ -17,3 +17,6 @@ cp words numbers Lab1
 # the -d', ' argument specifies to use a comma and space as a delimiter between the contents of each file
 cd Lab1
 paste -d', ' words numbers >> MergedContent
+
+# Display the first three lines in the file MergedContent.
+head -3 MergedContent
