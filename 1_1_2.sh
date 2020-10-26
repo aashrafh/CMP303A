@@ -8,3 +8,6 @@ fi
 
 # Create a new directory called Lab1.
 mkdir Lab1
+
+# Copy the files “words” & “numbers” 
+cp words numbers Lab1
