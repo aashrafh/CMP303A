@@ -32,3 +32,6 @@ cat SortedMergedContent
 
 # Prevent anyone from reading the SortedMergedContent.
 chmod a-r SortedMergedContent
+
+# Display the contents of the MergedContent after removing the duplicate lines.
+uniq -u MergedContent
