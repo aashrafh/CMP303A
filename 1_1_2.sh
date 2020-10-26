@@ -49,3 +49,9 @@ cat SortedMergedContent | tr '[a-z]' '[A-Z]'
 
 # Find the line numbers starting with “w” and ending with a number in MergedContent.
 grep -i -n "^w.*[0-9]$" MergedContent
+
+# Replace every occurrence of “I” (as in Iron) in MergeContent with “O” and save it to NewMergedContent 
+# in the same folder.
+# Note: I don't know if you want to ignore case or not
+# If you want then replace 'I' 'O' ==> 'iI' 'oO'
+cat MergedContent | tr 'I' 'O' >> NewMergedContent
