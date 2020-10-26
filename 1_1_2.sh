@@ -55,3 +55,6 @@ grep -i -n "^w.*[0-9]$" MergedContent
 # Note: I don't know if you want to ignore case or not
 # If you want then replace 'I' 'O' ==> 'iI' 'oO'
 cat MergedContent | tr 'I' 'O' >> NewMergedContent
+
+# Display both files MergedContent & NewMergedContent side by side on the terminal.
+paste -d', ' MergedContent NewMergedContent
