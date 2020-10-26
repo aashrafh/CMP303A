@@ -29,3 +29,6 @@ echo "The sorted file is :"
 
 # Display the SortedMergedContent.
 cat SortedMergedContent
+
+# Prevent anyone from reading the SortedMergedContent.
+chmod a-r SortedMergedContent
