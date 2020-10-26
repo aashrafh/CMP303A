@@ -20,3 +20,6 @@ paste -d', ' words numbers >> MergedContent
 
 # Display the first three lines in the file MergedContent.
 head -3 MergedContent
+
+# Sort the MergedContent and save your result in the file SortedMergedContent in the same folder.
+sort MergedContent >> SortedMergedContent
