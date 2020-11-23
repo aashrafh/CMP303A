@@ -27,10 +27,10 @@ int main(int argc, char **argv){
             int group = students / TAs;
             int pid, stat_loc;
             int results[TAs];
-            for(idx = 0; idx < TAs; idx++){
+            for(idx = 0; idx < TAs; idx++){ // TAs
                 pid = fork();
                 if (pid == -1) perror("error in fork");
-                else if(pid == 0) { // TA
+                else if(pid == 0) {
                     int start = idx*group;
                     int end = idx == TAs-1 ? students : start + group;
                     int passed = 0;
@@ -39,10 +39,10 @@ int main(int argc, char **argv){
                     }   
                     exit(passed);           
                 }
-                else { // Department Committee
-                    pid = wait(&stat_loc);
-                    results[idx] = !(stat_loc & 0x00FF) ? stat_loc>>8 : 0;
-                }
+            }
+            for(idx = 0; idx < TAs; idx++) { // Department
+                pid = wait(&stat_loc);
+                results[idx] = !(stat_loc & 0x00FF) ? stat_loc>>8 : 0;                
             }
             for(idx = 0; idx < TAs; idx++) printf("%d ", results[idx]);
             printf("\n");
