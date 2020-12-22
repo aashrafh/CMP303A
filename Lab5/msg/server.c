@@ -6,8 +6,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <signal.h>
 
-#define MAX_SIZE 257
+#define MAX_SIZE 260
+
+int upqid, downqid;
 
 struct msgbuff
 {
@@ -50,9 +53,16 @@ void serve(int upqid, int downqid){
     send(msg, downqid); // Send the processed message to the client
 }
 
+void handler(int signum) {
+    printf("\n\nServer is terminating...\n");
+    msgctl(upqid, IPC_RMID, (struct msqid_ds *) 0);   // Remove the up queue
+    msgctl(downqid, IPC_RMID, (struct msqid_ds *) 0); // Remove the down queue
+    printf("\n\nUp and Down queues has been removed, Goodbye!...\n");
+    killpg(getpid(), SIGINT);  // Make the process kill itself
+}
+
 int main(){
     key_t key_id;
-    int upqid, downqid;
     // Get the up queue
     key_id = ftok("up", 65);
     upqid = msgget(key_id, 0666 | IPC_CREAT);
@@ -66,7 +76,9 @@ int main(){
     }
     printf("\n\nServer: \nUp Queue ID: %d\nDown Queue ID: %d\n", upqid, downqid);
 
+    signal(SIGINT, handler);  // To catch the ctrl+c signal
     while(1){
+        printf("\n\nServer is running...\n");
         serve(upqid, downqid);
     }
 

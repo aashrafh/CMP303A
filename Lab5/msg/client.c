@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#define MAX_SIZE 257
+#define MAX_SIZE 260
 
 struct msgbuff
 {
@@ -75,6 +75,7 @@ int main(){
     printf("\n\nClient: \nUp Queue ID: %d\nDown Queue ID: %d\n", upqid, downqid);
 
     while(1){
+        printf("\n\nClient is running...\n");
         serve(upqid, downqid);
     }
 
