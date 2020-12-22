@@ -14,7 +14,7 @@
 #define MAX_SIZE 260
 #define MEMSZ 4096
 
-int shmid;
+int shmid, wsem, rsem;
 
 union Semun
 {
@@ -43,7 +43,7 @@ void down(int sem)
 
     if (semop(sem, &p_op, 1) == -1)
     {
-        perror("Error in down()");
+        perror("\n\nServer: Error in down()\n");
         exit(-1);
     }
 }
@@ -58,12 +58,14 @@ void up(int sem)
 
     if (semop(sem, &v_op, 1) == -1)
     {
-        perror("Error in up()");
+        perror("\n\nServer: Error in up()\n");
         exit(-1);
     }
 }
 
-void writer(char* msg, int sem){
+void writer(char* msg){
+    down(wsem);
+
     void *shmaddr = shmat(shmid, (void *)0, 0);
     if (*(int *)shmaddr == -1)
     {
@@ -75,12 +77,12 @@ void writer(char* msg, int sem){
     strcpy((char *)shmaddr, msg);
     printf("\n\nServer: sent message: %s\n", msg);
 
-    up(sem);        // Release the memory
+    up(rsem);        // Release the memory
     // shmdt(shmaddr); // Deatching the memory
 }
 
-char* reader(int sem){
-    down(sem);      // Make sure that the client has written his message
+char* reader(){
+    down(rsem);      // Make sure that the client has written his message
 
     void *shmaddr = shmat(shmid, (void *)0, 0);
     if (*(int *)shmaddr == -1)
@@ -92,12 +94,14 @@ char* reader(int sem){
     char* msg; // Read the content of the memory
     strcpy(msg, (char *)shmaddr);
     printf("\n\nServer: recieved message: %s\n", msg);
+
+    up(wsem);
 }
 
 void serve(int rsem, int wsem){
-    char* msg = reader(rsem);    // Get the message from the client
+    char* msg = reader();    // Get the message from the client
     msg = convert(msg, strlen(msg));    // Process it
-    writer(msg, wsem);           // Write it again to the memory
+    writer(msg);           // Write it again to the memory
 }
 
 void handler(int signum) {
@@ -109,7 +113,6 @@ void handler(int signum) {
 
 int main(){
     key_t key_id = 65;
-    int wsem, rsem;
     union Semun semun;
 
     shmid = shmget(key_id, MEMSZ, 0666 | IPC_CREAT);

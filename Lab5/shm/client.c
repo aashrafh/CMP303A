@@ -7,9 +7,14 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
+#include <string.h>
+#include <signal.h>
+#include <ctype.h>
 
 #define MAX_SIZE 260
 #define MEMSZ 4096
+
+int shmid, wsem, rsem;;
 
 union Semun
 {
@@ -44,7 +49,7 @@ void down(int sem)
 
     if (semop(sem, &p_op, 1) == -1)
     {
-        perror("Error in down()");
+        perror("\n\nClient: Error in down()\n");
         exit(-1);
     }
 }
@@ -59,26 +64,76 @@ void up(int sem)
 
     if (semop(sem, &v_op, 1) == -1)
     {
-        perror("Error in up()");
+        perror("\n\nClient: Error in up()\n");
         exit(-1);
     }
 }
 
+void writer(char* msg){
+    down(wsem);
+
+    void *shmaddr = shmat(shmid, (void *)0, 0);
+    if (*(int *)shmaddr == -1)
+    {
+        perror("\n\nClient: Error in attach in writer\n");
+        exit(-1);
+    }
+
+    // Write the message
+    strcpy((char *)shmaddr, msg);
+    printf("\n\nClient: sent message: %s\n", msg);
+
+    up(rsem);
+}
+
+void reader(){
+    down(rsem);      
+
+    void *shmaddr = shmat(shmid, (void *)0, 0);
+    if (*(int *)shmaddr == -1)
+    {
+        perror("\n\nClient: Error in attach in reader\n");
+        exit(-1);
+    }
+
+    char* msg; // Read the content of the memory
+    strcpy(msg, (char *)shmaddr);
+    printf("\n\nClient: recieved message: %s\n", msg);
+
+    up(wsem);
+}
+
+void serve(){
+    char* msg = get_input();    // Get the message from the user
+    writer(msg);    // Send to the server
+    reader();       // Get the processed message from the server
+}
+
 int main(){
     key_t key_id = 65;
-    int wsem, rsem, shimid;
-    union Semun semun;
+    union Semun wsemun, rsemun;
 
-    shimid = shmget(key_id, MEMSZ, 0666 | IPC_CREAT);
+    shmid = shmget(key_id, MEMSZ, 0666 | IPC_CREAT);
     wsem = semget(key_id, 1, 0666 | IPC_CREAT);      // A semaphore for writing to the shared memory
     rsem = semget(key_id, 1, 0666 | IPC_CREAT);      // A semaphore for reading from the shared memory
 
-    if(shimid == -1 || wsem == -1 || rsem == -1){
-        perror("\n\nClient: Error in create\n");
+    if(shmid == -1 || wsem == -1 || rsem == -1){
+        perror("\n\nServer: Error in create\n");
         exit(-1);
     }
-    printf("\n\nClient: Shared Memory ID: %d\n", shimid);
+    printf("\n\nServer: Shared Memory ID: %d\n", shmid);
 
-    
+    rsemun.val = 0; 
+    wsemun.val = 1; 
+    if (semctl(wsem, 0, SETVAL, wsemun) == -1 || semctl(rsem, 0, SETVAL, rsemun) == -1)
+    {
+        perror("Error in semctl");
+        exit(-1);
+    }
+
+    while(1){
+        printf("\n\nClient is running...\n");
+        serve();
+    }
     return 0;
 }
