@@ -58,7 +58,8 @@ void handler(int signum) {
     msgctl(upqid, IPC_RMID, (struct msqid_ds *) 0);   // Remove the up queue
     msgctl(downqid, IPC_RMID, (struct msqid_ds *) 0); // Remove the down queue
     printf("\n\nUp and Down queues has been removed, Goodbye!...\n");
-    killpg(getpid(), SIGINT);  // Make the process kill itself
+    // killpg(getpid(), SIGINT);  // Make the process kill itself
+    exit(0);
 }
 
 int main(){
