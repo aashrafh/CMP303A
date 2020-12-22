@@ -65,7 +65,7 @@ void up(int sem)
 
 void writer(char* msg, int sem){
     void *shmaddr = shmat(shmid, (void *)0, 0);
-    if (shmaddr == -1)
+    if (*(int *)shmaddr == -1)
     {
         perror("\n\nServer: Error in attach in writer\n");
         exit(-1);
@@ -83,7 +83,7 @@ char* reader(int sem){
     down(sem);      // Make sure that the client has written his message
 
     void *shmaddr = shmat(shmid, (void *)0, 0);
-    if (shmaddr == -1)
+    if (*(int *)shmaddr == -1)
     {
         perror("\n\nServer: Error in attach in reader\n");
         exit(-1);
@@ -92,8 +92,6 @@ char* reader(int sem){
     char* msg; // Read the content of the memory
     strcpy(msg, (char *)shmaddr);
     printf("\n\nServer: recieved message: %s\n", msg);
-
-    // 
 }
 
 void serve(int rsem, int wsem){
