@@ -11,10 +11,12 @@
 #include <signal.h>
 #include <ctype.h>
 
+#define N 1
 #define MAX_SIZE 260
 #define MEMSZ 4096
 
-int shmid, wsem, rsem;
+union Semun semun, esemun, fsemun;
+int shmid, ssem, csem, empty, full;
 
 union Semun
 {
@@ -63,79 +65,91 @@ void up(int sem)
     }
 }
 
-void writer(char* msg){
-    down(wsem);
-
-    void *shmaddr = shmat(shmid, (void *)0, 0);
-    if (*(int *)shmaddr == -1)
-    {
-        perror("\n\nServer: Error in attach in writer\n");
-        exit(-1);
-    }
+void writer(char* msg, void *shmaddr){
+    printf("\n\nServer: Trying to write...\n");
+    down(empty);
+    down(ssem);
+    printf("\n\nServer: currently write...\n");
 
     // Write the message
     strcpy((char *)shmaddr, msg);
     printf("\n\nServer: sent message: %s\n", msg);
 
-    up(rsem);        // Release the memory
-    // shmdt(shmaddr); // Deatching the memory
+    up(ssem);
+    up(full);
 }
 
-char* reader(){
-    down(rsem);      // Make sure that the client has written his message
-
-    void *shmaddr = shmat(shmid, (void *)0, 0);
-    if (*(int *)shmaddr == -1)
-    {
-        perror("\n\nServer: Error in attach in reader\n");
-        exit(-1);
-    }
+char* reader(void *shmaddr){
+    printf("\n\nServer: Trying to read...\n");
+    down(full);
+    down(csem);      
+    printf("\n\nServer: currently reading...\n");
 
     char* msg; // Read the content of the memory
+    printf("\n\nI'm HEEEERRE\n");
     strcpy(msg, (char *)shmaddr);
+    printf("\n\n55555555555555\n");
     printf("\n\nServer: recieved message: %s\n", msg);
 
-    up(wsem);
+    up(csem);
+    up(empty);
+
+    return msg;
 }
 
-void serve(int rsem, int wsem){
-    char* msg = reader();    // Get the message from the client
+void serve(int csem, int ssem, void *shmaddr){
+    char* msg = reader(shmaddr);    // Get the message from the client
     msg = convert(msg, strlen(msg));    // Process it
-    writer(msg);           // Write it again to the memory
+    writer(msg, shmaddr);           // Write it again to the memory
 }
 
 void handler(int signum) {
     printf("\n\nServer is terminating...\n");
     shmctl(shmid, IPC_RMID, (struct shmid_ds *)0);          // Remove the shared memory segment
-    printf("\n\nShared Memory has been removed, Goodbye!...\n");
+    // Remove Semphores
+    semctl(ssem, 0, IPC_RMID, semun);
+    semctl(csem, 0, IPC_RMID, semun);
+    semctl(full, 0, IPC_RMID, fsemun);
+    semctl(empty, 0, IPC_RMID, esemun);
+    
+    printf("\n\nEverything has been removed, Goodbye!...\n");
     exit(0);
 }
 
 int main(){
     key_t key_id = 65;
-    union Semun semun;
+    char* text = (char*) malloc(MAX_SIZE);
+    shmid = shmget(key_id, MAX_SIZE*sizeof(char), 0666 | IPC_CREAT);
+    ssem = semget(65, 1, 0666 | IPC_CREAT);      // A semaphore for writing to the shared memory
+    csem = semget(66, 1, 0666 | IPC_CREAT);      // A semaphore for reading from the shared memory
+    full = semget(67, 1, 0666 | IPC_CREAT);      
+    empty = semget(68, 1, 0666 | IPC_CREAT);      
 
-    shmid = shmget(key_id, MEMSZ, 0666 | IPC_CREAT);
-    wsem = semget(key_id, 1, 0666 | IPC_CREAT);      // A semaphore for writing to the shared memory
-    rsem = semget(key_id, 1, 0666 | IPC_CREAT);      // A semaphore for reading from the shared memory
-
-    if(shmid == -1 || wsem == -1 || rsem == -1){
+    if(shmid == -1 || ssem == -1 || csem == -1){
         perror("\n\nServer: Error in create\n");
         exit(-1);
     }
     printf("\n\nServer: Shared Memory ID: %d\n", shmid);
 
-    semun.val = 0; /* initial value of the semaphore, Binary semaphore */
-    if (semctl(wsem, 0, SETVAL, semun) == -1 || semctl(rsem, 0, SETVAL, semun) == -1)
+    semun.val = 1; 
+    esemun.val = N; 
+    fsemun.val = 0; 
+    if (semctl(ssem, 0, SETVAL, semun) == -1 || semctl(csem, 0, SETVAL, semun) == -1 || semctl(empty, 0, SETVAL, esemun) == -1 || semctl(full, 0, SETVAL, fsemun) == -1)
     {
         perror("Error in semctl");
         exit(-1);
     }
 
     signal(SIGINT, handler);  // To catch the ctrl+c signal
+    void *shmaddr = shmat(shmid, (void *)0, 0);
+    if (*(int *)shmaddr == -1)
+    {
+        perror("\n\nServer: Error in attach in reader\n");
+        exit(-1);
+    }
     while(1){
         printf("\n\nServer is running...\n");
-        serve(rsem, wsem);
+        serve(csem, ssem, shmaddr);
     }
     return 0;
 }
