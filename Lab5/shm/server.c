@@ -85,9 +85,6 @@ char* reader(void *shmaddr){
     down(csem);      
     printf("\n\nServer: currently reading...\n");
 
-    char* msg, *t; // Read the content of the memory
-    printf("\n\nI'm HEEEERRE\n");
-    // t = strcpy(msg, (char *)shmaddr);
     printf("\n\nServer: recieved message: %s\n", (char *)shmaddr);
 
     up(csem);
@@ -124,7 +121,7 @@ int main(){
     full = semget(67, 1, 0666 | IPC_CREAT);      
     empty = semget(68, 1, 0666 | IPC_CREAT);      
 
-    if(shmid == -1 || ssem == -1 || csem == -1){
+    if(shmid == -1 || ssem == -1 || csem == -1 || full == -1|| empty == -1){
         perror("\n\nServer: Error in create\n");
         exit(-1);
     }

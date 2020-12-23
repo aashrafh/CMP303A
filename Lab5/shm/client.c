@@ -11,10 +11,11 @@
 #include <signal.h>
 #include <ctype.h>
 
+#define N 1
 #define MAX_SIZE 260
 #define MEMSZ 4096
-#define N 1
 
+union Semun semun, esemun, fsemun;
 int shmid, ssem, csem, empty, full;
 
 union Semun
@@ -91,8 +92,6 @@ void reader(void *shmaddr){
     down(ssem);      
     printf("\n\nClient: currently reading...\n");
 
-    // char* msg; // Read the content of the memory
-    // strcpy(msg, (char *)shmaddr);
     printf("\n\nClient: recieved message: %s\n", (char *)shmaddr);
 
     up(ssem);   
@@ -107,7 +106,6 @@ void serve(void *shmaddr){
 
 int main(){
     key_t key_id = 65;
-    union Semun semun, esemun, fsemun;
     char* text = (char*) malloc(MAX_SIZE);
     shmid = shmget(key_id, MAX_SIZE*sizeof(char), 0666 | IPC_CREAT);
     ssem = semget(65, 1, 0666 | IPC_CREAT);      // A semaphore for writing to the shared memory
@@ -115,11 +113,11 @@ int main(){
     full = semget(67, 1, 0666 | IPC_CREAT);      
     empty = semget(68, 1, 0666 | IPC_CREAT);      
 
-    if(shmid == -1 || ssem == -1 || csem == -1){
-        perror("\n\nServer: Error in create\n");
+    if(shmid == -1 || ssem == -1 || csem == -1 || full == -1|| empty == -1){
+        perror("\n\nClient: Error in create\n");
         exit(-1);
     }
-    printf("\n\nServer: Shared Memory ID: %d\n", shmid);
+    printf("\n\nClient: Shared Memory ID: %d\n", shmid);
 
     semun.val = 1; 
     esemun.val = N; 
