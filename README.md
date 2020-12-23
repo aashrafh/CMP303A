@@ -1,2 +1,2 @@
-# CMP303A
-Any codes related to the CMP303A-Operating Systems course in my college
+# CMP303A - Operating Systems
+Solutions of the CMP303A-Operating Systems course's labs in college
