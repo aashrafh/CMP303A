@@ -78,7 +78,7 @@ void writer(char* msg, void *shmaddr){
     printf("\n\nClient: currently writing...\n");
 
     // Write the message
-    strcpy((char *)shmaddr, msg);
+    msg = strcpy((char *)shmaddr, msg);
     printf("\n\nClient: sent message: %s\n", msg);
 
     up(csem);
@@ -91,9 +91,9 @@ void reader(void *shmaddr){
     down(ssem);      
     printf("\n\nClient: currently reading...\n");
 
-    char* msg; // Read the content of the memory
-    strcpy(msg, (char *)shmaddr);
-    printf("\n\nClient: recieved message: %s\n", msg);
+    // char* msg; // Read the content of the memory
+    // strcpy(msg, (char *)shmaddr);
+    printf("\n\nClient: recieved message: %s\n", (char *)shmaddr);
 
     up(ssem);   
     up(empty);
