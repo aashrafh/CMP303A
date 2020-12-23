@@ -114,7 +114,6 @@ void handler(int signum) {
 
 int main(){
     key_t key_id = 65;
-    char* text = (char*) malloc(MAX_SIZE);
     shmid = shmget(key_id, MAX_SIZE*sizeof(char), 0666 | IPC_CREAT);
     ssem = semget(65, 1, 0666 | IPC_CREAT);      // A semaphore for writing to the shared memory
     csem = semget(66, 1, 0666 | IPC_CREAT);      // A semaphore for reading from the shared memory
