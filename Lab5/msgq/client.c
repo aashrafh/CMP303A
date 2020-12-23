@@ -39,7 +39,10 @@ void recieve(long mtype,int msgqid){
 
     rec_val = msgrcv(msgqid, &msg, sizeof(msg.mtext), mtype, !IPC_NOWAIT);
 
-    if(rec_val == -1) perror("\n\nClient: Error in receive\n");
+    if(rec_val == -1){
+        perror("\n\nClient: Error in receive\n");
+        exit(-1);
+    }
     else printf("\n\nClient: Message received: %s\n", msg.mtext);
 }
 
